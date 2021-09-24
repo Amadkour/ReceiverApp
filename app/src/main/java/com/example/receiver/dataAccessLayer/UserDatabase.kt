@@ -1,44 +1,55 @@
 package com.example.receiver.dataAccessLayer
 
 import androidx.room.*
+import com.example.emitter.accessLayer.model.Geo
 
-@Entity(tableName = "posts")
-data class Post(
-    @PrimaryKey(autoGenerate = true)
-    val id: Int?=null,
-    var title: String,
-    var body: String,
-    var userId: Int,
-    )
 
 //---------(DAO-> Data Access Object)------------//
 
 @Dao
 interface UserDao {
-    @Query("SELECT * FROM posts")
-    fun getAll(): List<Post>
+    @Query("SELECT * FROM user_table")
+    fun getAll(): List<UserTable>
 
-    @Query("SELECT * FROM posts WHERE userId IN (:userIds)")
-    fun loadAllByIds(userIds: IntArray): List<Post>
-
-    @Query(
-        "SELECT * FROM posts WHERE title LIKE :title AND " +
-                "body LIKE :body LIMIT 1"
-    )
-    fun findByName(title: String, body: String): Post
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertAll( users: Post):Long
+    fun insertUser( users: UserTable):Long
 
-    @Delete
-    fun delete(user: Post)
+
 }
 
 /**
 -------------------------Database-----------------------
  */
 
-@Database(entities = [Post::class], version = 2)
+@Database(entities = [UserTable::class], version = 3)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun userDao(): UserDao
 }
+
+
+@Entity(tableName = "user_table")
+
+data class UserTable(
+    @PrimaryKey val id:Int,
+    val name:String,
+    val username:String,
+    val email:String,
+    @Embedded val address: Address,
+    val phone:String,
+    @Embedded val company: Company,
+)
+data class Company(
+    @ColumnInfo(name = "company_name") val name:String,
+    val catchPhrase:String,
+    val bs:String,
+)
+data class Address(
+    val street:String,
+    val suite:String,
+    val zipcode:String,
+    @Embedded val geo: Geo
+)
+
+
+
